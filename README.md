@@ -1,7 +1,12 @@
-# PlantStorage
+# PlantStorage [![CC BY 4.0][cc-by-shield]][cc-by]
+
 Modeling the feasibility of storing data in plant DNA
 
-[![CC BY 4.0][cc-by-shield]][cc-by]
+Project documentation is included in [this Google Doc](https://docs.google.com/document/d/1jMiG087jqUCKMrLQIJbmoevw6NKzlCqD8z-ekliEvzU/edit?usp=sharing).
+
+---
+
+
 
 This work is licensed under a
 [Creative Commons Attribution 4.0 International License][cc-by].
