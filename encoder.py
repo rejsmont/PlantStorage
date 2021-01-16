@@ -1,5 +1,5 @@
 import sys
-
+import time
 
 
 def getBaseFromByte(byte):
@@ -15,36 +15,28 @@ def getBaseFromByte(byte):
 def encode(filePath):
     with open(filePath, 'rb') as file:
         byte = file.read(1)
-        encodedFile = open("encodedFile.txt", 'w')
-        sequence = ""
+        encodedFile = open(filePath.split(".")[0] + "_encoded.txt", 'w')
         while byte:
             rl = bin(int.from_bytes(byte, byteorder=sys.byteorder))[2:]
-            if len(rl) % 2 == 1:
-                # print("ça passe")
-                rl = "0" + rl
+            if len(rl) > 8:
+                print("wesh soucis")
 
-            if len(rl) == 1:
-                # print("soucis")
-                rl = "0" + rl
-                # print(rl)
+            if len(rl) < 8:
+                while len(rl) < 8:
+                    rl = "0" + rl
             baseIndex = 0
-            # print("byte value : " +  rl)
             while baseIndex < len(rl):
-                # print(rl[baseIndex:baseIndex+2])
-                # print(baseIndex)
                 encodedFile.write(getBaseFromByte(rl[baseIndex:baseIndex+2]))
                 baseIndex += 2
 
             byte = file.read(1)
 
-        # encodedFile.write(sequence)
-
-        # print(content)
-
-
 
 def main():
-    encode("test1.txt")
+    start = time.time()
+    encode("ressources/dataset.mp3")
+    end = time.time()
+    print("running time : ", end - start)
     print("finit")
 
 
