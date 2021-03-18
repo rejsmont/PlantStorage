@@ -1,62 +1,52 @@
 import random
 import levenshteinDistance
+from Bio import SeqIO
+import numpy as np
+from io import StringIO
 
 def mutation(rate, seq):
-    mutatedSeq = ""
     baseList = ["A","T","C","G"]
-    mutationHistory = []
-    for i in range(len(seq)):
-        base = seq[i]
-        chance = random.random()
-        if chance < rate:
-            diff = False
-            while diff == False:
-                newBase = baseList[random.randint(0, len(base))]
-                if newBase != base:
-                    mutatedSeq += newBase
-                    mutationHistory.append([i, base, newBase])
-                    diff = True
+    records = list(SeqIO.parse(seq, "fasta"))
+    for sequence in records:
+        curSeq = StringIO(str(sequence.seq))
+        mutatedSeq = sequence.seq.tomutable()
+        mutationHistory = []
+        randomList = np.random.rand(len(curSeq.getvalue()))
+        index = 0
+         
+        for base in curSeq.readline():
+            index = curSeq.tell() - 1
+            curSeq.seek(index)
+            if randomList[index] < rate:
+                diff = False
+                while diff == False:
+                    newBase = baseList[random.randint(0, 3)]
+                    if newBase != base:
+                        mutatedSeq[index] = newBase
+                        mutationHistory.append([index, base, newBase])
+                        diff = True
 
-        else: #if no mutation occured, just adding the bases to our new sequence
-            mutatedSeq += base
-                
-    return [mutatedSeq, mutationHistory, len(mutationHistory)]
 
-def chooseRandomSequence(fastafile):
-    sequences = []
-    with open(fastafile) as fileobj:
-        isNewSec = False
-        secId = ""
-        realNucLine = ""
-        for line in fileobj:
-            if ">" in line and isNewSec == False:
-                secId = line[line.rfind(">")+1:line.find("\n")]
-                realNucLine = ""
-                isNewSec = True
-            elif ">" in line and isNewSec == True:
-                sequences.append(realNucLine)
-                secId = line[line.rfind(">")+1:line.find("\n")]
-                realNucLine = ""
-            elif line.find(">") == -1:
-                realNucLine += line.split("\n")[0]
+        yield (curSeq, mutatedSeq, mutationHistory, len(mutationHistory))
 
-        if secId and realNucLine:
-            sequences.append(realNucLine)
-
-    return sequences[random.randint(0,len(sequences))]
 
 def main():
-    random.seed()
-    seq = chooseRandomSequence("./ressources/Araport11_genes.201606.cdna.fasta")
-    newSeq, history, nbMutation  = mutation(1/1000, seq)
-    print("lenght of unmuted sequence : ", len(seq))
-    print("lenght of muted sequence : ", len(newSeq))
-    if nbMutation == levenshteinDistance.levenshteinDistance(seq, newSeq):
-        print("We found : " + str(nbMutation) + " mutations in the sequence")
-        accept = input("Type ''Y'' to see the history of the mutation or anything else to finish")
-        if accept.lower() == "y":
-            for elem in history:
-                print("Mutation at index : " + str(elem[0]) + " which consist of a substitution where " + elem[1] + " has been transformed into a " + elem[2])
+    for seq, newSeq, history, nbMutation  in mutation(1/1000, "./ressources/Araport11_genes.201606.cdna.fasta"):
+        print("lenght of unmuted sequence : ", len(seq.getvalue()))
+        print("lenght of muted sequence : ", len(newSeq))
+        if nbMutation == levenshteinDistance.levenshteinDistance(seq.getvalue(), newSeq):
+            print("We found : " + str(nbMutation) + " mutations in the sequence")
+            accept = input("Type ''Y'' to see the history of the mutation or anything else to finish")
+            if accept.lower() == "y":
+                for elem in history:
+                    print("Mutation at index : " + str(elem[0]) + " which consist of a substitution where " + elem[1] + " has been transformed into a " + elem[2])
+            next = input("Type ''N'' to see the next mutation or anything else to finish")
+            if next.lower() != "n":
+                print("finish")
+                return    
+    print("finish")
+
+
 
 if __name__ == '__main__':
     main()
